@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOLO LEVELING — THE SYSTEM</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Cinzel+Decorative:wght@700&family=Exo+2:wght@400;600;800&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <!-- React & ReactDOM UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel Standalone -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Lucide Icons UMD -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #030712;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+    .scanlines {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 0, 0, 0.28) 50%,
+        rgba(0, 0, 0, 0.28)
+      );
+      background-size: 100% 4px;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.75; }
+      50% { opacity: 1; }
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 2.4s infinite ease-in-out;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(5, 10, 25, 0.8); }
+    ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.45); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    // --- COLOR PRESETS (14+ Variants & Combos) ---
+    const COLOR_PRESETS = {
+      classicCyan: {
+        name: "Classic System Cyan",
+        primary: "#00e5ff",
+        secondary: "#0284c7",
+        accent: "#38bdf8",
+        bg: "#040d1a",
+        panel: "rgba(6, 22, 46, 0.86)",
+        text: "#e0f7fa",
+        danger: "#ff2a55"
+      },
+      shadowMonarch: {
+        name: "Shadow Monarch Sovereign",
+        primary: "#a855f7",
+        secondary: "#6366f1",
+        accent: "#e879f9",
+        bg: "#070312",
+        panel: "rgba(18, 9, 38, 0.88)",
+        text: "#f3e8ff",
+        danger: "#f43f5e"
+      },
+      bloodPenalty: {
+        name: "Blood Red Penalty Zone",
+        primary: "#ff2a55",
+        secondary: "#991b1b",
+        accent: "#fb7185",
+        bg: "#140408",
+        panel: "rgba(38, 8, 16, 0.88)",
+        text: "#ffe4e6",
+        danger: "#ef4444"
+      },
+      nationalGold: {
+        name: "National Level Gold",
+        primary: "#fbbf24",
+        secondary: "#d97706",
+        accent: "#fde68a",
+        bg: "#120d02",
+        panel: "rgba(34, 24, 6, 0.88)",
+        text: "#fef3c7",
+        danger: "#f87171"
+      },
+      worldTree: {
+        name: "World Tree Emerald",
+        primary: "#10b981",
+        secondary: "#059669",
+        accent: "#6ee7b7",
+        bg: "#02120c",
+        panel: "rgba(6, 32, 23, 0.88)",
+        text: "#d1fae5",
+        danger: "#fb7185"
+      },
+      demonBaran: {
+        name: "Demon King Baran (Dual-Tone)",
+        primary: "#38bdf8",
+        secondary: "#c084fc",
+        accent: "#f472b6",
+        bg: "#07091e",
+        panel: "rgba(15, 18, 48, 0.88)",
+        text: "#e0f2fe",
+        danger: "#fb7185"
+      },
+      kamishWrath: {
+        name: "Kamish's Wrath Dragonfire",
+        primary: "#f97316",
+        secondary: "#dc2626",
+        accent: "#facc15",
+        bg: "#140703",
+        panel: "rgba(38, 13, 6, 0.88)",
+        text: "#ffedd5",
+        danger: "#ef4444"
+      },
+      frostMonarch: {
+        name: "Frost Monarch Glacial",
+        primary: "#67e8f9",
+        secondary: "#3b82f6",
+        accent: "#ffffff",
+        bg: "#030f1c",
+        panel: "rgba(8, 28, 48, 0.86)",
+        text: "#ecfeff",
+        danger: "#f43f5e"
+      },
+      igrisBloodSteel: {
+        name: "Igris Blood-Steel",
+        primary: "#ef4444",
+        secondary: "#64748b",
+        accent: "#cbd5e1",
+        bg: "#090a0f",
+        panel: "rgba(20, 22, 32, 0.90)",
+        text: "#f1f5f9",
+        danger: "#dc2626"
+      },
+      ashbornEclipse: {
+        name: "Ashborn's Eclipse (Tri-Tone)",
+        primary: "#c084fc",
+        secondary: "#fbbf24",
+        accent: "#38bdf8",
+        bg: "#090414",
+        panel: "rgba(21, 10, 38, 0.90)",
+        text: "#faf5ff",
+        danger: "#f43f5e"
+      },
+      beruAbyss: {
+        name: "Ant King Beru Abyss",
+        primary: "#2dd4bf",
+        secondary: "#9333ea",
+        accent: "#a7f3d0",
+        bg: "#040f12",
+        panel: "rgba(9, 27, 34, 0.88)",
+        text: "#ccfbf1",
+        danger: "#fb7185"
+      },
+      architectVoid: {
+        name: "Architect's Monochrome Void",
+        primary: "#f8fafc",
+        secondary: "#94a3b8",
+        accent: "#38bdf8",
+        bg: "#020617",
+        panel: "rgba(15, 23, 42, 0.90)",
+        text: "#f8fafc",
+        danger: "#ef4444"
+      }
+    };
+
+    const FONT_OPTIONS = [
+      { id: "'Rajdhani', sans-serif", name: "Rajdhani (Classic System HUD)" },
+      { id: "'Orbitron', sans-serif", name: "Orbitron (Cyber Sci-Fi)" },
+      { id: "'Chakra Petch', sans-serif", name: "Chakra Petch (Tactical Angular)" },
+      { id: "'Share Tech Mono', monospace", name: "Share Tech Mono (Terminal Matrix)" },
+      { id: "'Cinzel Decorative', serif", name: "Cinzel Decorative (Sovereign Runic)" },
+      { id: "'Exo 2', sans-serif", name: "Exo 2 (Clean Modern Hunter)" }
+    ];
+
+    const DEFAULT_STATE = {
+      hunter: {
+        name: "SUNG JIN-WOO",
+        job: "SHADOW MONARCH",
+        title: "The One Who Overcame Adversity",
+        rank: "S-RANK",
+        level: 100,
+        xp: 450,
+        gold: 125000,
+        hp: 12500,
+        maxHp: 12500,
+        mp: 8900,
+        maxMp: 8900,
+        fatigue: 8,
+        ap: 15,
+        avatarUrl: "",
+        stats: [
+          { id: "str", name: "STR (Strength)", val: 210, desc: "Physical raw output & lifting power" },
+          { id: "agi", name: "AGI (Agility)", val: 195, desc: "Speed, reflexes, and evasion" },
+          { id: "vit", name: "VIT (Vitality)", val: 180, desc: "Stamina, health defense & recovery" },
+          { id: "int", name: "INT (Intelligence)", val: 240, desc: "Mana capacity & shadow army limit" },
+          { id: "per", name: "PER (Sense)", val: 188, desc: "Awareness, focus & crit detection" }
+        ]
+      },
+      quests: [
+        { id: "q1", title: "Push-ups", target: 100, current: 60, unit: "reps", xp: 150, gold: 500 },
+        { id: "q2", title: "Sit-ups", target: 100, current: 100, unit: "reps", xp: 150, gold: 500 },
+        { id: "q3", title: "Squats", target: 100, current: 80, unit: "reps", xp: 150, gold: 500 },
+        { id: "q4", title: "Running", target: 10, current: 6, unit: "km", xp: 250, gold: 1000 }
+      ],
+      dailyClaimed: false,
+      penaltyMode: false,
+      inventory: [
+        { id: "i1", name: "Kamish's Wrath", type: "WEAPON", rarity: "MYTHIC", qty: 1, effect: "+300 STR", equipped: true },
+        { id: "i2", name: "Elixir of Life", type: "CONSUMABLE", rarity: "LEGENDARY", qty: 3, effect: "Full HP/MP & 0 Fatigue", equipped: false },
+        { id: "i3", name: "Demon King's Longsword", type: "WEAPON", rarity: "LEGENDARY", qty: 1, effect: "+140 INT & Lightning", equipped: false },
+        { id: "i4", name: "High-Grade Mana Potion", type: "CONSUMABLE", rarity: "EPIC", qty: 8, effect: "Restores 2500 MP", equipped: false }
+      ],
+      store: [
+        { id: "s1", name: "High-Grade Mana Potion", type: "CONSUMABLE", rarity: "EPIC", cost: 2500, effect: "Restores 2500 MP" },
+        { id: "s2", name: "Elixir of Life", type: "CONSUMABLE", rarity: "LEGENDARY", cost: 15000, effect: "Full HP/MP & 0 Fatigue" },
+        { id: "s3", name: "1 Hour Guilt-Free Gaming", type: "REAL_REWARD", rarity: "RARE", cost: 3000, effect: "Real-life leisure reward" },
+        { id: "s4", name: "Cheat Meal Pass", type: "REAL_REWARD", rarity: "EPIC", cost: 8000, effect: "Order favorite meal" }
+      ],
+      shadows: [
+        { id: "sh1", name: "IGRIS", title: "Blood-Red Commander", grade: "MARSHAL", unlocked: true, bonus: "+15% XP Gain", quote: "My liege, point your blade.", imageUrl: "" },
+        { id: "sh2", name: "BERU", title: "Former Ant King", grade: "GRAND MARSHAL", unlocked: true, bonus: "+20% All Stats Aura", quote: "KIIIIEEEEEEK! For the King!", imageUrl: "" },
+        { id: "sh3", name: "BELLION", title: "Grand Marshal of Shadows", grade: "GRAND MARSHAL", unlocked: true, bonus: "+25% Gold & XP", quote: "The Shadow Army awaits your command.", imageUrl: "" },
+        { id: "sh4", name: "TUSK", title: "High Orc Shaman", grade: "COMMANDER", unlocked: false, bonus: "+20% Max MP", quote: "Hymn of the Fire Dragon!", imageUrl: "" },
+        { id: "sh5", name: "KAMISH", title: "Calamity of Humanity", grade: "MYTHIC", unlocked: false, bonus: "+50% Boss Rewards", quote: "ROOOOOOAAAAAR!", imageUrl: "" }
+      ],
+      ui: {
+        preset: "classicCyan",
+        customColors: {
+          primary: "#00e5ff",
+          secondary: "#0284c7",
+          accent: "#38bdf8",
+          bg: "#040d1a",
+          panel: "rgba(6, 22, 46, 0.86)",
+          text: "#e0f7fa",
+          danger: "#ff2a55"
+        },
+        useCustomColors: false,
+        windowStyle: "angular", // angular, runic, glass, brutal, hex
+        fontFamily: "'Rajdhani', sans-serif",
+        textGlow: 10,
+        borderWidth: 1.5,
+        cornerRadius: 6,
+        glassBlur: 12,
+        scanlines: true,
+        soundEnabled: true,
+        allWindowsView: false,
+        systemTitle: "SYSTEM",
+        voiceTone: "ARCHITECT", // ARCHITECT, SOVEREIGN, JARVIS
+        btnShape: "chamfer", // chamfer, rounded, sharp, capsule, hex
+        btnShader: "neon", // neon, gradient, wireframe, solid, ghost
+        btnGlow: 12,
+        btnUseCustomColor: false,
+        btnPrimaryColor: "#00e5ff",
+        btnTextColor: "#ffffff"
+      },
+      backend: {
+        baseXpPerLevel: 1000,
+        xpGrowthFactor: 1.15,
+        apPerLevel: 5,
+        hpPerLevel: 250,
+        mpPerLevel: 150
+      },
+      googleVault: {
+        bound: false,
+        email: "",
+        displayName: "",
+        vaultPin: "",
+        lastSynced: null
+      }
+    };
+
+    // --- WEB AUDIO SYNTHESIZER ---
+    function playSystemSound(type, enabled = true) {
+      if (!enabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        if (type === "click") {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(920, now);
+          osc.frequency.exponentialRampToValueAtTime(1480, now + 0.06);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.07);
+        } else if (type === "levelup") {
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.12, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.35);
+          });
+        } else if (type === "arise") {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(110, now);
+          osc.frequency.exponentialRampToValueAtTime(440, now + 0.55);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        } else if (type === "alarm") {
+          [320, 220].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "square";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+            gain.gain.setValueAtTime(0.1, now + idx * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.14);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.15);
+            osc.stop(now + idx * 0.15 + 0.14);
+          });
+        }
+      } catch (e) {}
+    }
+
+    function App() {
+      const [state, setState] = useState(() => {
+        try {
+          const saved = localStorage.getItem("SOLO_SYSTEM_MASTER_V3");
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            return {
+              ...DEFAULT_STATE,
+              ...parsed,
+              hunter: { ...DEFAULT_STATE.hunter, ...(parsed.hunter || {}) },
+              ui: { ...DEFAULT_STATE.ui, ...(parsed.ui || {}) },
+              backend: { ...DEFAULT_STATE.backend, ...(parsed.backend || {}) },
+              googleVault: { ...DEFAULT_STATE.googleVault, ...(parsed.googleVault || {}) }
+            };
+          }
+        } catch (e) {}
+        return DEFAULT_STATE;
+      });
+
+      const [activeTab, setActiveTab] = useState("status");
+      const [toast, setToast] = useState(null);
+      const [commandInput, setCommandInput] = useState("");
+      const [showGoogleModal, setShowGoogleModal] = useState(false);
+      const [showIdModal, setShowIdModal] = useState(false);
+      const [showQuickDrawer, setShowQuickDrawer] = useState(false);
+
+      // Forms
+      const [newStatName, setNewStatName] = useState("");
+      const [newStatDesc, setNewStatDesc] = useState("");
+      const [newQuestTitle, setNewQuestTitle] = useState("");
+      const [newQuestTarget, setNewQuestTarget] = useState(50);
+      const [newQuestUnit, setNewQuestUnit] = useState("reps");
+      const [newStoreItemName, setNewStoreItemName] = useState("");
+      const [newStoreItemCost, setNewStoreItemCost] = useState(2000);
+      const [newStoreItemEffect, setNewStoreItemEffect] = useState("");
+
+      // Custom Shadow Forge
+      const [shadowName, setShadowName] = useState("");
+      const [shadowTitle, setShadowTitle] = useState("");
+      const [shadowGrade, setShadowGrade] = useState("COMMANDER");
+      const [shadowBonus, setShadowBonus] = useState("+10% All Stats");
+      const [shadowQuote, setShadowQuote] = useState("I answer the Monarch's call.");
+      const [shadowImageUrl, setShadowImageUrl] = useState("");
+
+      // Google Binding Modal inputs
+      const [gEmail, setGEmail] = useState(state.googleVault.email || "");
+      const [gName, setGName] = useState(state.googleVault.displayName || state.hunter.name);
+      const [gPin, setGPin] = useState(state.googleVault.vaultPin || "");
+
+      // Dungeon Timer
+      const [dungeonMinutes, setDungeonMinutes] = useState(25);
+      const [dungeonSecondsLeft, setDungeonSecondsLeft] = useState(0);
+      const [dungeonRunning, setDungeonRunning] = useState(false);
+
+      // Save to LocalStorage + Google Account Vault slot
+      useEffect(() => {
+        try {
+          localStorage.setItem("SOLO_SYSTEM_MASTER_V3", JSON.stringify(state));
+          if (state.googleVault?.bound && state.googleVault?.email) {
+            const key = `SOLO_GVAULT_${state.googleVault.email.toLowerCase().trim()}`;
+            localStorage.setItem(key, JSON.stringify({ ...state, savedAt: new Date().toISOString() }));
+          }
+        } catch (e) {}
+      }, [state]);
+
+      // Pomodoro Dungeon Countdown
+      useEffect(() => {
+        if (!dungeonRunning) return;
+        const interval = setInterval(() => {
+          setDungeonSecondsLeft((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              setDungeonRunning(false);
+              gainRewards(500, 2500, "INSTANT DUNGEON BOSS SLAIN!");
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+        return () => clearInterval(interval);
+      }, [dungeonRunning]);
+
+      const notify = (msg, type = "info") => {
+        playSystemSound(type === "levelup" ? "levelup" : type === "arise" ? "arise" : type === "danger" ? "alarm" : "click", state.ui.soundEnabled);
+        setToast({ msg, type, id: Date.now() });
+        setTimeout(() => {
+          setToast((cur) => (cur && cur.msg === msg ? null : cur));
+        }, 3800);
+      };
+
+      // Active Color Palette
+      const palette = useMemo(() => {
+        if (state.penaltyMode) return COLOR_PRESETS.bloodPenalty;
+        if (state.ui.useCustomColors) return state.ui.customColors;
+        return COLOR_PRESETS[state.ui.preset] || COLOR_PRESETS.classicCyan;
+      }, [state.ui.preset, state.ui.useCustomColors, state.ui.customColors, state.penaltyMode]);
+
+      const maxXpForLevel = Math.floor(
+        state.backend.baseXpPerLevel * Math.pow(state.backend.xpGrowthFactor, Math.max(0, state.hunter.level - 1))
+      );
+
+      // Universal Customizable System Button Helper
+      const getButtonStyle = (variant = "primary") => {
+        const baseColor = state.ui.btnUseCustomColor
+          ? state.ui.btnPrimaryColor
+          : variant === "danger"
+          ? palette.danger
+          : variant === "secondary"
+          ? palette.secondary
+          : palette.primary;
+
+        const textColor = state.ui.btnUseCustomColor ? state.ui.btnTextColor : "#ffffff";
+
+        let borderRadius = `${state.ui.cornerRadius}px`;
+        let clipPath = "none";
+        if (state.ui.btnShape === "chamfer") {
+          clipPath = "polygon(8px 0%, 100% 0%, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0% 100%, 0% 8px)";
+          borderRadius = "0px";
+        } else if (state.ui.btnShape === "sharp") {
+          borderRadius = "0px";
+        } else if (state.ui.btnShape === "capsule") {
+          borderRadius = "9999px";
+        } else if (state.ui.btnShape === "hex") {
+          clipPath = "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)";
+        }
+
+        let background = `${baseColor}28`;
+        let border = `1.5px solid ${baseColor}`;
+        if (state.ui.btnShader === "gradient") {
+          background = `linear-gradient(135deg, ${baseColor}66, ${palette.secondary}66)`;
+        } else if (state.ui.btnShader === "solid") {
+          background = baseColor;
+        } else if (state.ui.btnShader === "wireframe") {
+          background = "transparent";
+          border = `1.5px dashed ${baseColor}`;
+        } else if (state.ui.btnShader === "ghost") {
+          background = "rgba(255,255,255,0.04)";
+          border = `1px solid ${baseColor}55`;
+        }
+
+        return {
+          background,
+          border,
+          borderRadius,
+          clipPath,
+          color: state.ui.btnShader === "solid" ? "#020617" : textColor,
+          boxShadow: `0 0 ${state.ui.btnGlow}px ${baseColor}44`,
+          fontFamily: state.ui.fontFamily,
+          cursor: "pointer"
+        };
+      };
+
+      const getWindowStyle = () => {
+        let clipPath = "none";
+        let borderStyle = "solid";
+        if (state.ui.windowStyle === "angular") {
+          clipPath = "polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))";
+        } else if (state.ui.windowStyle === "hex") {
+          clipPath = "polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px), 0 12px)";
+        } else if (state.ui.windowStyle === "brutal") {
+          borderStyle = "double";
+        }
+
+        return {
+          background: palette.panel,
+          border: `${state.ui.borderWidth}px ${borderStyle} ${palette.primary}88`,
+          borderRadius: `${state.ui.cornerRadius}px`,
+          backdropFilter: `blur(${state.ui.glassBlur}px)`,
+          boxShadow: `0 0 25px ${palette.primary}22, inset 0 0 18px ${palette.primary}14`,
+          clipPath
+        };
+      };
+
+      // Leveling & Reward Engine
+      const gainRewards = (xpDelta, goldDelta, label = "REWARD ACQUIRED") => {
+        setState((prev) => {
+          let newXp = prev.hunter.xp + xpDelta;
+          let newLevel = prev.hunter.level;
+          let newAp = prev.hunter.ap;
+          let newMaxHp = prev.hunter.maxHp;
+          let newMaxMp = prev.hunter.maxMp;
+          let leveledUp = false;
+
+          let reqXp = Math.floor(
+            prev.backend.baseXpPerLevel * Math.pow(prev.backend.xpGrowthFactor, Math.max(0, newLevel - 1))
+          );
+
+          while (newXp >= reqXp) {
+            newXp -= reqXp;
+            newLevel += 1;
+            newAp += prev.backend.apPerLevel;
+            newMaxHp += prev.backend.hpPerLevel;
+            newMaxMp += prev.backend.mpPerLevel;
+            leveledUp = true;
+            reqXp = Math.floor(
+              prev.backend.baseXpPerLevel * Math.pow(prev.backend.xpGrowthFactor, Math.max(0, newLevel - 1))
+            );
+          }
+
+          if (leveledUp) {
+            setTimeout(() => notify(`LEVEL UP! You reached Level ${newLevel} (+${prev.backend.apPerLevel} AP)`, "levelup"), 50);
+          } else {
+            setTimeout(() => notify(`${label}: +${xpDelta} XP, +${goldDelta} Gold`, "info"), 50);
+          }
+
+          return {
+            ...prev,
+            hunter: {
+              ...prev.hunter,
+              level: newLevel,
+              xp: newXp,
+              gold: prev.hunter.gold + goldDelta,
+              ap: newAp,
+              maxHp: newMaxHp,
+              hp: leveledUp ? newMaxHp : prev.hunter.hp,
+              maxMp: newMaxMp,
+              mp: leveledUp ? newMaxMp : prev.hunter.mp
+            }
+          };
+        });
+      };
+
+      // Stat Handlers
+      const allocateStat = (id, delta) => {
+        setState((prev) => {
+          if (delta > 0 && prev.hunter.ap < delta) {
+            notify("Insufficient Ability Points (AP)!", "danger");
+            return prev;
+          }
+          playSystemSound("click", prev.ui.soundEnabled);
+          return {
+            ...prev,
+            hunter: {
+              ...prev.hunter,
+              ap: prev.hunter.ap - delta,
+              stats: prev.hunter.stats.map((s) =>
+                s.id === id ? { ...s, val: Math.max(1, s.val + delta) } : s
+              )
+            }
+          };
+        });
+      };
+
+      const addCustomStat = () => {
+        if (!newStatName.trim()) return;
+        setState((prev) => ({
+          ...prev,
+          hunter: {
+            ...prev.hunter,
+            stats: [
+              ...prev.hunter.stats,
+              {
+                id: "st_" + Date.now(),
+                name: newStatName.trim().toUpperCase(),
+                val: 10,
+                desc: newStatDesc.trim() || "Custom Hunter Attribute"
+              }
+            ]
+          }
+        }));
+        setNewStatName("");
+        setNewStatDesc("");
+        notify("Custom attribute registered into Status Window.");
+      };
+
+      const removeStat = (id) => {
+        setState((prev) => ({
+          ...prev,
+          hunter: {
+            ...prev.hunter,
+            stats: prev.hunter.stats.filter((s) => s.id !== id)
+          }
+        }));
+      };
+
+      // Photo Upload Handler (FileReader -> DataURL)
+      const handlePhotoUpload = (e, target = "hunter") => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (target === "hunter") {
+            setState((prev) => ({
+              ...prev,
+              hunter: { ...prev.hunter, avatarUrl: reader.result }
+            }));
+            notify("Hunter ID Biometric Photo Updated!");
+          } else if (target === "shadow") {
+            setShadowImageUrl(reader.result);
+            notify("Shadow Soldier Portrait Loaded!");
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+
+      // Quest Handlers
+      const updateQuestProgress = (qId, delta) => {
+        setState((prev) => ({
+          ...prev,
+          quests: prev.quests.map((q) => {
+            if (q.id !== qId) return q;
+            const nextVal = Math.max(0, Math.min(q.target, q.current + delta));
+            return { ...q, current: nextVal };
+          })
+        }));
+        playSystemSound("click", state.ui.soundEnabled);
+      };
+
+      const claimDailyReward = () => {
+        const allDone = state.quests.every((q) => q.current >= q.target);
+        if (!allDone) {
+          notify("Complete all Daily Quests before claiming the System Reward!", "danger");
+          return;
+        }
+        if (state.dailyClaimed) {
+          notify("Daily Quest reward already claimed today!", "info");
+          return;
+        }
+        setState((prev) => ({
+          ...prev,
+          dailyClaimed: true,
+          penaltyMode: false,
+          hunter: {
+            ...prev.hunter,
+            hp: prev.hunter.maxHp,
+            mp: prev.hunter.maxMp,
+            fatigue: 0,
+            ap: prev.hunter.ap + 3
+          }
+        }));
+        gainRewards(600, 3000, "DAILY QUEST COMPLETED (+3 AP & STATUS RECOVERY)");
+      };
+
+      const addCustomQuest = () => {
+        if (!newQuestTitle.trim()) return;
+        setState((prev) => ({
+          ...prev,
+          quests: [
+            ...prev.quests,
+            {
+              id: "q_" + Date.now(),
+              title: newQuestTitle.trim(),
+              target: Number(newQuestTarget) || 50,
+              current: 0,
+              unit: newQuestUnit || "reps",
+              xp: 200,
+              gold: 600
+            }
+          ]
+        }));
+        setNewQuestTitle("");
+        notify("New Daily Directive added.");
+      };
+
+      // Inventory & Store
+      const useOrEquipItem = (item) => {
+        if (item.type === "WEAPON") {
+          setState((prev) => ({
+            ...prev,
+            inventory: prev.inventory.map((i) =>
+              i.id === item.id ? { ...i, equipped: !i.equipped } : i
+            )
+          }));
+          notify(`${item.name} ${item.equipped ? "unequipped" : "equipped"}!`);
+        } else {
+          setState((prev) => ({
+            ...prev,
+            hunter: {
+              ...prev.hunter,
+              hp: prev.hunter.maxHp,
+              mp: prev.hunter.maxMp,
+              fatigue: 0
+            },
+            inventory: prev.inventory
+              .map((i) => (i.id === item.id ? { ...i, qty: i.qty - 1 } : i))
+              .filter((i) => i.qty > 0)
+          }));
+          notify(`Consumed ${item.name}! Full Status Recovery applied.`, "levelup");
+        }
+      };
+
+      const buyStoreItem = (sItem) => {
+        if (state.hunter.gold < sItem.cost) {
+          notify("Insufficient Gold in System Wallet!", "danger");
+          return;
+        }
+        setState((prev) => {
+          const existing = prev.inventory.find((i) => i.name === sItem.name);
+          const updatedInv = existing
+            ? prev.inventory.map((i) => (i.name === sItem.name ? { ...i, qty: i.qty + 1 } : i))
+            : [
+                ...prev.inventory,
+                {
+                  id: "inv_" + Date.now(),
+                  name: sItem.name,
+                  type: sItem.type,
+                  rarity: sItem.rarity,
+                  qty: 1,
+                  effect: sItem.effect,
+                  equipped: false
+                }
+              ];
+          return {
+            ...prev,
+            hunter: { ...prev.hunter, gold: prev.hunter.gold - sItem.cost },
+            inventory: updatedInv
+          };
+        });
+        notify(`Purchased [${sItem.name}]! Added to Inventory.`);
+      };
+
+      const addCustomStoreItem = () => {
+        if (!newStoreItemName.trim()) return;
+        setState((prev) => ({
+          ...prev,
+          store: [
+            ...prev.store,
+            {
+              id: "st_" + Date.now(),
+              name: newStoreItemName.trim(),
+              type: "REAL_REWARD",
+              rarity: "EPIC",
+              cost: Number(newStoreItemCost) || 1500,
+              effect: newStoreItemEffect.trim() || "Custom Hunter Reward"
+            }
+          ]
+        }));
+        setNewStoreItemName("");
+        setNewStoreItemEffect("");
+        notify("Custom Reward added to System Store.");
+      };
+
+      // Shadow Army Extraction & Forge
+      const toggleShadowArise = (shId) => {
+        setState((prev) => ({
+          ...prev,
+          shadows: prev.shadows.map((s) =>
+            s.id === shId ? { ...s, unlocked: !s.unlocked } : s
+          )
+        }));
+        notify("ARISE! Shadow Soldier status updated.", "arise");
+      };
+
+      const createCustomShadow = () => {
+        if (!shadowName.trim()) {
+          notify("Enter a Shadow Soldier name before calling ARISE!", "danger");
+          return;
+        }
+        const newShadow = {
+          id: "sh_" + Date.now(),
+          name: shadowName.trim().toUpperCase(),
+          title: shadowTitle.trim() || "Shadow Legionnaire",
+          grade: shadowGrade,
+          unlocked: true,
+          bonus: shadowBonus.trim() || "+10% All Stats",
+          quote: shadowQuote.trim() || "I obey the Shadow Monarch.",
+          imageUrl: shadowImageUrl
+        };
+        setState((prev) => ({
+          ...prev,
+          shadows: [newShadow, ...prev.shadows]
+        }));
+        setShadowName("");
+        setShadowTitle("");
+        setShadowImageUrl("");
+        notify(`"ARISE!" — [${newShadow.name}] has joined your Shadow Army!`, "arise");
+      };
+
+      // Command Console Directives
+      const executeCommand = (rawCmd) => {
+        const cmd = (rawCmd || commandInput).trim().toUpperCase();
+        if (!cmd) return;
+        setCommandInput("");
+        if (cmd === "ARISE") {
+          setActiveTab("shadows");
+          notify("ARISE! Calling forth the Shadow Army...", "arise");
+        } else if (cmd === "RECOVER") {
+          setState((prev) => ({
+            ...prev,
+            hunter: { ...prev.hunter, hp: prev.hunter.maxHp, mp: prev.hunter.maxMp, fatigue: 0 }
+          }));
+          notify("Full Status Recovery Activated!", "levelup");
+        } else if (cmd === "LEVEL UP") {
+          gainRewards(maxXpForLevel, 5000, "DIRECTIVE: INSTANT LEVEL UP");
+        } else if (cmd === "CLAIM") {
+          claimDailyReward();
+        } else if (cmd === "STATUS") {
+          setActiveTab("status");
+          notify("Opening Hunter Status Window.");
+        } else if (cmd === "PENALTY") {
+          setState((prev) => ({ ...prev, penaltyMode: !prev.penaltyMode }));
+          notify("Penalty Zone Protocol Toggled!", "danger");
+        } else {
+          notify(`Executed System Directive: [${cmd}]`);
+        }
+      };
+
+      // Google Account Identity Vault Binding
+      const bindGoogleVault = () => {
+        if (!gEmail.trim() || !gEmail.includes("@")) {
+          notify("Please enter a valid Google Email (@gmail.com or Workspace).", "danger");
+          return;
+        }
+        const cleanEmail = gEmail.trim().toLowerCase();
+        const key = `SOLO_GVAULT_${cleanEmail}`;
+        const existingVault = localStorage.getItem(key);
+
+        setState((prev) => ({
+          ...prev,
+          hunter: {
+            ...prev.hunter,
+            name: gName.trim() ? gName.trim().toUpperCase() : prev.hunter.name
+          },
+          googleVault: {
+            bound: true,
+            email: cleanEmail,
+            displayName: gName.trim() || prev.hunter.name,
+            vaultPin: gPin,
+            lastSynced: new Date().toLocaleTimeString()
+          }
+        }));
+        setShowGoogleModal(false);
+        notify(`Bound privately to Google Vault: ${cleanEmail}`, "levelup");
+      };
+
+      const restoreFromGoogleVault = () => {
+        if (!gEmail.trim()) return;
+        const key = `SOLO_GVAULT_${gEmail.trim().toLowerCase()}`;
+        const saved = localStorage.getItem(key);
+        if (!saved) {
+          notify("No existing cloud snapshot found for that Google Email on this browser.", "danger");
+          return;
+        }
+        try {
+          const parsed = JSON.parse(saved);
+          setState(parsed);
+          setShowGoogleModal(false);
+          notify(`Restored Hunter Data from ${gEmail.trim()}!`, "levelup");
+        } catch (e) {
+          notify("Failed to parse Vault snapshot.", "danger");
+        }
+      };
+
+      const exportSystemJson = () => {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `solo_system_${state.hunter.name.toLowerCase().replace(/\s+/g, "_")}.json`;
+        a.click();
+        notify("Exported encrypted System JSON backup.");
+      };
+
+      const importSystemJson = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(reader.result);
+            setState((prev) => ({ ...prev, ...parsed }));
+            notify("System Backup Restored Successfully!", "levelup");
+          } catch (err) {
+            notify("Invalid System JSON file.", "danger");
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      // --- SUB-WINDOWS ---
+      const renderStatusWindow = () => (
+        <div style={getWindowStyle()} className="p-6 relative transition-all">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 mb-6" style={{ borderColor: `${palette.primary}44` }}>
+            <div className="flex items-center gap-4">
+              {/* Hunter ID Avatar */}
+              <div className="relative group w-20 h-20 rounded-lg overflow-hidden border-2 flex items-center justify-center bg-slate-950" style={{ borderColor: palette.primary, boxShadow: `0 0 15px ${palette.primary}55` }}>
+                {state.hunter.avatarUrl ? (
+                  <img src={state.hunter.avatarUrl} alt="Hunter ID" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-center text-xs font-bold opacity-80" style={{ color: palette.primary }}>
+                    HUNTER<br />ID
+                  </div>
+                )}
+                <label className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] font-bold cursor-pointer transition-opacity text-white text-center p-1">
+                  UPLOAD PHOTO
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, "hunter")} />
+                </label>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-2 py-0.5 font-bold rounded" style={{ background: `${palette.primary}33`, color: palette.primary, border: `1px solid ${palette.primary}` }}>
+                    {state.hunter.rank}
+                  </span>
+                  <span className="text-xs tracking-widest opacity-75">[{state.hunter.job}]</span>
+                </div>
+                <h2 className="text-2xl md:text-3xl font-black tracking-wider mt-1" style={{ textShadow: `0 0 ${state.ui.textGlow}px ${palette.primary}` }}>
+                  {state.hunter.name}
+                </h2>
+                <p className="text-xs opacity-80 italic">Title: "{state.hunter.title}"</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="text-3xl font-black" style={{ color: palette.primary, textShadow: `0 0 ${state.ui.textGlow}px ${palette.primary}` }}>
+                  LV. {state.hunter.level}
+                </div>
+                <div className="text-xs opacity-80">
+                  XP: {state.hunter.xp} / {maxXpForLevel}
+                </div>
+              </div>
+              <button onClick={() => setShowIdModal(true)} style={getButtonStyle("secondary")} className="px-3 py-2 text-xs font-bold uppercase tracking-wider">
+                Edit ID & Photo
+              </button>
+            </div>
+          </div>
+
+          {/* HP / MP / Fatigue Bars */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="p-3 rounded bg-black/40 border" style={{ borderColor: `${palette.primary}33` }}>
+              <div className="flex justify-between text-xs font-bold mb-1">
+                <span>HP (HEALTH)</span>
+                <span>{state.hunter.hp} / {state.hunter.maxHp}</span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-900 rounded overflow-hidden">
+                <div className="h-full transition-all" style={{ width: `${Math.min(100, (state.hunter.hp / state.hunter.maxHp) * 100)}%`, background: "#ef4444", boxShadow: "0 0 10px #ef4444" }} />
+              </div>
+            </div>
+
+            <div className="p-3 rounded bg-black/40 border" style={{ borderColor: `${palette.primary}33` }}>
+              <div className="flex justify-between text-xs font-bold mb-1">
+                <span>MP (MANA)</span>
+                <span>{state.hunter.mp} / {state.hunter.maxMp}</span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-900 rounded overflow-hidden">
+                <div className="h-full transition-all" style={{ width: `${Math.min(100, (state.hunter.mp / state.hunter.maxMp) * 100)}%`, background: palette.primary, boxShadow: `0 0 10px ${palette.primary}` }} />
+              </div>
+            </div>
+
+            <div className="p-3 rounded bg-black/40 border flex items-center justify-between" style={{ borderColor: `${palette.primary}33` }}>
+              <div>
+                <div className="text-xs font-bold opacity-75">FATIGUE: {state.hunter.fatigue}%</div>
+                <div className="text-lg font-black" style={{ color: "#fbbf24" }}>
+                  GOLD: {state.hunter.gold.toLocaleString()} G
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs opacity-75 block">AVAILABLE AP</span>
+                <span className="text-2xl font-black" style={{ color: palette.accent }}>{state.hunter.ap}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats List + Add Custom Attribute */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-2.5">
+              <h3 className="text-sm font-bold tracking-widest uppercase mb-2" style={{ color: palette.primary }}>
+                [ HUNTER ATTRIBUTES ]
+              </h3>
+              {state.hunter.stats.map((st) => (
+                <div key={st.id} className="flex items-center justify-between p-2.5 rounded bg-black/40 border" style={{ borderColor: `${palette.primary}33` }}>
+                  <div>
+                    <div className="font-bold text-sm">{st.name}</div>
+                    <div className="text-[11px] opacity-65">{st.desc}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-black px-2" style={{ color: palette.primary }}>{st.val}</span>
+                    <button onClick={() => allocateStat(st.id, 1)} style={getButtonStyle("primary")} className="px-2.5 py-1 text-xs font-bold">
+                      +1
+                    </button>
+                    <button onClick={() => allocateStat(st.id, 5)} style={getButtonStyle("secondary")} className="px-2 py-1 text-xs font-bold">
+                      +5
+                    </button>
+                    {st.id.startsWith("st_") && (
+                      <button onClick={() => removeStat(st.id)} style={getButtonStyle("danger")} className="px-2 py-1 text-xs font-bold">
+                        ×
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Custom Attribute Box */}
+            <div className="p-4 rounded bg-black/40 border flex flex-col justify-between" style={{ borderColor: `${palette.primary}33` }}>
+              <div>
+                <h3 className="text-sm font-bold tracking-widest uppercase mb-3" style={{ color: palette.primary }}>
+                  [ REGISTER CUSTOM REAL-LIFE STAT ]
+                </h3>
+                <p className="text-xs opacity-75 mb-4">
+                  Track your own real-life metrics (e.g. CODING, FOCUS, CHARISMA, ENDURANCE) and level them up with Ability Points.
+                </p>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Attribute Name (e.g. FOCUS)"
+                    value={newStatName}
+                    onChange={(e) => setNewStatName(e.target.value)}
+                    className="w-full px-3 py-2 rounded bg-slate-950/90 border text-sm outline-none"
+                    style={{ borderColor: `${palette.primary}55`, color: palette.text }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Short description..."
+                    value={newStatDesc}
+                    onChange={(e) => setNewStatDesc(e.target.value)}
+                    className="w-full px-3 py-2 rounded bg-slate-950/90 border text-sm outline-none"
+                    style={{ borderColor: `${palette.primary}55`, color: palette.text }}
+                  />
+                  <button onClick={addCustomStat} style={getButtonStyle("primary")} className="w-full py-2 text-xs font-bold uppercase tracking-wider">
+                    + Add Custom Attribute
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t flex items-center justify-between text-xs opacity-80" style={{ borderColor: `${palette.primary}33` }}>
+                <span>Total Combat Power Rating:</span>
+                <span className="text-lg font-black" style={{ color: palette.accent }}>
+                  {(state.hunter.level * 150 + state.hunter.stats.reduce((a, b) => a + b.val * 25, 0)).toLocaleString()} CP
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      const renderQuestsWindow = () => (
+        <div style={getWindowStyle()} className="p-6 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4" style={{ borderColor: `${palette.primary}44` }}>
+            <div>
+              <span className="text-xs font-bold tracking-widest uppercase" style={{ color: palette.primary }}>
+                [ SYSTEM DIRECTIVE // DAILY QUEST ]
+              </span>
+              <h2 className="text-2xl font-black tracking-wide mt-0.5">
+                THE PREPARATION TO BECOME STRONG
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={claimDailyReward} style={getButtonStyle("primary")} className="px-4 py-2 text-xs font-bold uppercase">
+                {state.dailyClaimed ? "Reward Claimed ✓" : "Claim Daily Reward"}
+              </button>
+              <button
+                onClick={() => setState((prev) => ({ ...prev, penaltyMode: !prev.penaltyMode }))}
+                style={getButtonStyle("danger")}
+                className="px-3 py-2 text-xs font-bold uppercase"
+              >
+                {state.penaltyMode ? "Exit Penalty Zone" : "Trigger Penalty Zone"}
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {state.quests.map((q) => {
+              const pct = Math.min(100, Math.round((q.current / q.target) * 100));
+              return (
+                <div key={q.id} className="p-4 rounded bg-black/40 border" style={{ borderColor: `${palette.primary}44` }}>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-bold text-base">{q.title}</span>
+                    <span className="text-sm font-black" style={{ color: pct >= 100 ? "#10b981" : palette.primary }}>
+                      [{q.current} / {q.target} {q.unit}]
+                    </span>
+                  </div>
+                  <div className="w-full h-2.5 bg-slate-900 rounded overflow-hidden mb-3">
+                    <div className="h-full transition-all" style={{ width: `${pct}%`, background: pct >= 100 ? "#10b981" : palette.primary }} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs opacity-75">+{q.xp} XP / +{q.gold} G</span>
+                    <div className="flex gap-1.5">
+                      <button onClick={() => updateQuestProgress(q.id, 10)} style={getButtonStyle("primary")} className="px-2.5 py-1 text-xs font-bold">
+                        +10
+                      </button>
+                      <button onClick={() => updateQuestProgress(q.id, q.target)} style={getButtonStyle("secondary")} className="px-2.5 py-1 text-xs font-bold">
+                        MAX
+                      </button>
+                      <button onClick={() => updateQuestProgress(q.id, -q.target)} style={getButtonStyle("danger")} className="px-2 py-1 text-xs font-bold">
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Add Custom Habit + Instant Dungeon Pomodoro */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t" style={{ borderColor: `${palette.primary}33` }}>
+            <div className="p-4 rounded bg-black/40 border space-y-3" style={{ borderColor: `${palette.primary}33` }}>
+              <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: palette.primary }}>
+                + Add Custom Daily Quest Goal
+              </h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Quest Name (e.g. Deep Study)"
+                  value={newQuestTitle}
+                  onChange={(e) => setNewQuestTitle(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded bg-slate-950 border text-sm"
+                  style={{ borderColor: `${palette.primary}44` }}
+                />
+                <input
+                  type="number"
+                  value={newQuestTarget}
+                  onChange={(e) => setNewQuestTarget(e.target.value)}
+                  className="w-20 px-2 py-2 rounded bg-slate-950 border text-sm"
+                  style={{ borderColor: `${palette.primary}44` }}
+                />
+                <input
+                  type="text"
+                  value={newQuestUnit}
+                  onChange={(e) => setNewQuestUnit(e.target.value)}
+                  className="w-20 px-2 py-2 rounded bg-slate-950 border text-sm"
+                  style={{ borderColor: `${palette.primary}44` }}
+                />
+              </div>
+              <button onClick={addCustomQuest} style={getButtonStyle("primary")} className="w-full py-2 text-xs font-bold uppercase">
+                Register Quest Directive
+              </button>
+            </div>
+
+            <div className="p-4 rounded bg-black/40 border flex flex-col justify-between" style={{ borderColor: `${palette.primary}33` }}>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: palette.primary }}>
+                    [ INSTANT DUNGEON // FOCUS TIMER ]
+                  </h3>
+                  <p className="text-xs opacity-75">Clear timed focus raids for +500 XP & +2500 Gold</p>
+                </div>
+                <div className="text-2xl font-black font-mono" style={{ color: palette.accent }}>
+                  {dungeonRunning
+                    ? `${String(Math.floor(dungeonSecondsLeft / 60)).padStart(2, "0")}:${String(dungeonSecondsLeft % 60).padStart(2, "0")}`
+                    : `${dungeonMinutes}:00`}
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => {
+                    setDungeonSecondsLeft(dungeonMinutes * 60);
+                    setDungeonRunning(true);
+                    notify("Entered S-Rank Instant Dungeon! Focus timer started.");
+                  }}
+                  style={getButtonStyle("primary")}
+                  className="flex-1 py-2 text-xs font-bold uppercase"
+                >
+                  Enter Dungeon ({dungeonMinutes}m)
+                </button>
+                <button
+                  onClick={() => {
+                    setDungeonRunning(false);
+                    gainRewards(500, 2500, "INSTANT DUNGEON BOSS SLAIN");
+                  }}
+                  style={getButtonStyle("secondary")}
+                  className="px-3 py-2 text-xs font-bold uppercase"
+                >
+                  Instant Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      const renderInventoryWindow = () => (
+        <div style={getWindowStyle()} className="p-6 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Inventory */}
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-wider mb-4" style={{ color: palette.primary }}>
+                [ HUNTER INVENTORY ]
+              </h2>
+              <div className="space-y-3">
+                {state.inventory.map((item) => (
+                  <div key={item.id} className="p-3.5 rounded bg-black/40 border flex items-center justify-between" style={{ borderColor: `${palette.primary}44` }}>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm">{item.name}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded font-bold" style={{ background: `${palette.primary}33`, color: palette.primary }}>
+                          {item.rarity}
+                        </span>
+                        <span className="text-xs opacity-75">x{item.qty}</span>
+                      </div>
+                      <div className="text-xs opacity-75 mt-0.5">{item.effect}</div>
+                    </div>
+                    <button onClick={() => useOrEquipItem(item)} style={getButtonStyle("primary")} className="px-3 py-1.5 text-xs font-bold uppercase">
+                      {item.type === "WEAPON" ? (item.equipped ? "Unequip" : "Equip") : "Consume"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* System Store */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-black uppercase tracking-wider" style={{ color: palette.primary }}>
+                  [ SYSTEM STORE ]
+                </h2>
+                <span className="text-sm font-black" style={{ color: "#fbbf24" }}>
+                  WALLET: {state.hunter.gold.toLocaleString()} G
+                </span>
+              </div>
+              <div className="space-y-3 mb-4">
+                {state.store.map((sItem) => (
+                  <div key={sItem.id} className="p-3.5 rounded bg-black/40 border flex items-center justify-between" style={{ borderColor: `${palette.primary}44` }}>
+                    <div>
+                      <div className="font-bold text-sm">{sItem.name}</div>
+                      <div className="text-xs opacity-75">{sItem.effect}</div>
+                    </div>
+                    <button onClick={() => buyStoreItem(sItem)} style={getButtonStyle("secondary")} className="px-3 py-1.5 text-xs font-bold uppercase">
+                      Buy ({sItem.cost.toLocaleString()} G)
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add Custom Store Reward */}
+              <div className="p-3.5 rounded bg-black/40 border space-y-2" style={{ borderColor: `${palette.primary}33` }}>
+                <div className="text-xs font-bold uppercase" style={{ color: palette.primary }}>+ Create Custom Store Reward</div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Reward Name"
+                    value={newStoreItemName}
+                    onChange={(e) => setNewStoreItemName(e.target.value)}
+                    className="flex-1 px-2.5 py-1.5 rounded bg-slate-950 border text-xs"
+                    style={{ borderColor: `${palette.primary}44` }}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Cost (G)"
+                    value={newStoreItemCost}
+                    onChange={(e) => setNewStoreItemCost(e.target.value)}
+                    className="w-24 px-2.5 py-1.5 rounded bg-slate-950 border text-xs"
+                    style={{ borderColor: `${palette.primary}44` }}
+                  />
+                </div>
+                <button onClick={addCustomStoreItem} style={getButtonStyle("primary")} className="w-full py-1.5 text-xs font-bold uppercase">
+                  Add Reward to Store
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      const renderShadowsWindow = () => (
+        <div style={getWindowStyle()} className="p-6 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4" style={{ borderColor: `${palette.primary}44` }}>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: palette.primary }}>
+                [ MONARCH'S LEGION // SHADOW EXTRACTION ]
+              </span>
+              <h2 className="text-2xl font-black tracking-wide">"ARISE" — SHADOW ARMY</h2>
+            </div>
+          </div>
+
+          {/* Custom Shadow Soldier Forge */}
+          <div className="p-4 rounded bg-black/50 border space-y-3" style={{ borderColor: `${palette.primary}66` }}>
+            <h3 className="text-sm font-bold uppercase tracking-wider" style={{ color: palette.primary }}>
+              [ ARISE FORGE — CREATE CUSTOM SHADOW SOLDIER ]
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <input
+                type="text"
+                placeholder="Shadow Name (e.g. IRON, GREED, KAISEL)"
+                value={shadowName}
+                onChange={(e) => setShadowName(e.target.value)}
+                className="px-3 py-2 rounded bg-slate-950 border text-xs"
+                style={{ borderColor: `${palette.primary}44` }}
+              />
+              <input
+                type="text"
+                placeholder="Title / Class (e.g. Shadow Wyvern)"
+                value={shadowTitle}
+                onChange={(e) => setShadowTitle(e.target.value)}
+                className="px-3 py-2 rounded bg-slate-950 border text-xs"
+                style={{ borderColor: `${palette.primary}44` }}
+              />
+              <select
+                value={shadowGrade}
+                onChange={(e) => setShadowGrade(e.target.value)}
+                className="px-3 py-2 rounded bg-slate-950 border text-xs"
+                style={{ borderColor: `${palette.primary}44` }}
+              >
+                <option value="ELITE">ELITE GRADE</option>
+                <option value="KNIGHT">KNIGHT GRADE</option>
+                <option value="COMMANDER">COMMANDER GRADE</option>
+                <option value="MARSHAL">MARSHAL GRADE</option>
+                <option value="GRAND MARSHAL">GRAND MARSHAL</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Passive Bonus (e.g. +25% Speed)"
+                value={shadowBonus}
+                onChange={(e) => setShadowBonus(e.target.value)}
+                className="px-3 py-2 rounded bg-slate-950 border text-xs"
+                style={{ borderColor: `${palette.primary}44` }}
+              />
+              <input
+                type="text"
+                placeholder="Battle Cry Quote"
+                value={shadowQuote}
+                onChange={(e) => setShadowQuote(e.target.value)}
+                className="px-3 py-2 rounded bg-slate-950 border text-xs"
+                style={{ borderColor: `${palette.primary}44` }}
+              />
+              <label className="px-3 py-2 rounded bg-slate-950 border text-xs flex items-center justify-center cursor-pointer font-bold" style={{ borderColor: `${palette.primary}66`, color: palette.primary }}>
+                {shadowImageUrl ? "Shadow Portrait Ready ✓" : "Upload Shadow Image (Optional)"}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, "shadow")} />
+              </label>
+            </div>
+            <button onClick={createCustomShadow} style={getButtonStyle("primary")} className="w-full py-2.5 text-xs font-black uppercase tracking-widest">
+              "ARISE" — EXTRACT & SUMMON CUSTOM SHADOW SOLDIER
+            </button>
+          </div>
+
+          {/* Shadow Soldiers Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {state.shadows.map((sh) => (
+              <div
+                key={sh.id}
+                className="p-4 rounded bg-black/40 border flex flex-col justify-between transition-all"
+                style={{
+                  borderColor: sh.unlocked ? palette.primary : `${palette.primary}33`,
+                  opacity: sh.unlocked ? 1 : 0.6
+                }}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="text-[10px] px-2 py-0.5 rounded font-bold" style={{ background: `${palette.primary}33`, color: palette.primary }}>
+                      {sh.grade}
+                    </span>
+                    <span className="text-xs font-bold" style={{ color: sh.unlocked ? "#10b981" : "#94a3b8" }}>
+                      {sh.unlocked ? "SUMMONED" : "DORMANT"}
+                    </span>
+                  </div>
+                  {sh.imageUrl && (
+                    <img src={sh.imageUrl} alt={sh.name} className="w-full h-32 object-cover rounded mb-2 border" style={{ borderColor: palette.primary }} />
+                  )}
+                  <h4 className="text-lg font-black">{sh.name}</h4>
+                  <p className="text-xs opacity-75">{sh.title}</p>
+                  <p className="text-xs font-bold mt-2" style={{ color: palette.accent }}>{sh.bonus}</p>
+                  <p className="text-[11px] italic opacity-70 mt-1">"{sh.quote}"</p>
+                </div>
+                <button
+                  onClick={() => toggleShadowArise(sh.id)}
+                  style={getButtonStyle(sh.unlocked ? "secondary" : "primary")}
+                  className="w-full mt-4 py-2 text-xs font-bold uppercase tracking-wider"
+                >
+                  {sh.unlocked ? "Return to Shadow" : "ARISE (Extract)"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+      const renderArchitectWindow = () => (
+        <div style={getWindowStyle()} className="p-6 space-y-6">
+          <h2 className="text-2xl font-black uppercase tracking-wider border-b pb-3" style={{ color: palette.primary, borderColor: `${palette.primary}44` }}>
+            [ SYSTEM ARCHITECT // FULL UI, BUTTON & BACKEND ENGINE ]
+          </h2>
+
+          {/* 1. Preset Color Themes */}
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: palette.primary }}>
+              1. Color Variants & Multi-Tone Presets
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              {Object.entries(COLOR_PRESETS).map(([key, p]) => (
+                <button
+                  key={key}
+                  onClick={() =>
+                    setState((prev) => ({
+                      ...prev,
+                      ui: { ...prev.ui, preset: key, useCustomColors: false }
+                    }))
+                  }
+                  className="p-2.5 rounded border text-left transition-all flex items-center gap-2"
+                  style={{
+                    background: p.bg,
+                    borderColor: state.ui.preset === key && !state.ui.useCustomColors ? p.primary : `${p.primary}44`,
+                    color: p.text
+                  }}
+                >
+                  <span className="w-4 h-4 rounded-full shrink-0" style={{ background: `linear-gradient(135deg, ${p.primary}, ${p.secondary})` }} />
+                  <span className="text-xs font-bold truncate">{p.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. Custom Color Combo Picker */}
+          <div className="p-4 rounded bg-black/40 border space-y-3" style={{ borderColor: `${palette.primary}44` }}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold uppercase" style={{ color: palette.primary }}>
+                Custom Color Combo Builder
+              </h3>
+              <label className="text-xs flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={state.ui.useCustomColors}
+                  onChange={(e) =>
+                    setState((prev) => ({
+                      ...prev,
+                      ui: { ...prev.ui, useCustomColors: e.target.checked }
+                    }))
+                  }
+                />
+                Enable Custom Palette
+              </label>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+              {["primary", "secondary", "accent", "bg", "text"].map((ch) => (
+                <div key={ch} className="flex items-center justify-between p-2 rounded bg-slate-950 border" style={{ borderColor: `${palette.primary}33` }}>
+                  <span className="uppercase font-bold">{ch}</span>
+                  <input
+                    type="color"
+                    value={state.ui.customColors[ch]}
+                    onChange={(e) =>
+                      setState((prev) => ({
+                        ...prev,
+                        ui: {
+                          ...prev.ui,
+                          useCustomColors: true,
+                          customColors: { ...prev.ui.customColors, [ch]: e.target.value }
+                        }
+                      }))
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Window Frame & Typography */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded bg-black/40 border space-y-3" style={{ borderColor: `${palette.primary}44` }}>
+              <h3 className="text-sm font-bold uppercase" style={{ color: palette.primary }}>
+                Window Frame & Typography
+              </h3>
+              <div className="space-y-2 text-xs">
+                <label className="block">Window Frame Architecture</label>
+                <select
+                  value={state.ui.windowStyle}
+                  onChange={(e) => setState((prev) => ({ ...prev, ui: { ...prev.ui, windowStyle: e.target.value } }))}
+                  className="w-full p-2 rounded bg-slate-950 border"
+                  style={{ borderColor: `${palette.primary}55` }}
+                >
+                  <option value="angular">Classic Angular HUD</option>
+                  <option value="hex">Hexagonal Hive Frame</option>
+                  <option value="glass">Minimalist Glassmorphic</option>
+                  <option value="brutal">Brutalist Double Grid</option>
+                </select>
+
+                <label className="block mt-2">System Font Family</label>
+                <select
+                  value={state.ui.fontFamily}
+                  onChange={(e) => setState((prev) => ({ ...prev, ui: { ...prev.ui, fontFamily: e.target.value } }))}
+                  className="w-full p-2 rounded bg-slate-950 border"
+                  style={{ borderColor: `${palette.primary}55` }}
+                >
+                  {FONT_OPTIONS.map((f) => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* 4. Button Studio */}
+            <div className="p-4 rounded bg-black/40 border space-y-3" style={{ borderColor: `${palette.primary}44` }}>
+              <h3 className="text-sm font-bold uppercase" style={{ color: palette.primary }}>
+                Interactive Button Studio
+              </h3>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label className="block mb-1">Button Shape</label>
+                  <select
+                    value={state.ui.btnShape}
+                    onChange={(e) => setState((prev) => ({ ...prev, ui: { ...prev.ui, btnShape: e.target.value } }))}
+                    className="w-full p-2 rounded bg-slate-950 border"
+                    style={{ borderColor: `${palette.primary}55` }}
+                  >
+                    <option value="chamfer">Tactical Chamfer</option>
+                    <option value="rounded">Modern Rounded</option>
+                    <option value="sharp">Brutalist Sharp</option>
+                    <option value="capsule">Sovereign Capsule</option>
+                    <option value="hex">Hexagon Core</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1">Button Surface Shader</label>
+                  <select
+                    value={state.ui.btnShader}
+                    onChange={(e) => setState((prev) => ({ ...prev, ui: { ...prev.ui, btnShader: e.target.value } }))}
+                    className="w-full p-2 rounded bg-slate-950 border"
+                    style={{ borderColor: `${palette.primary}55` }}
+                  >
+                    <option value="neon">Neon Translucent</option>
+                    <option value="gradient">Dual-Tone Gradient</option>
+                    <option value="solid">Solid High-Contrast</option>
+                    <option value="wireframe">Hologram Wireframe</option>
+                    <option value="ghost">Minimalist Ghost</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 5. Cloud & JSON Backup */}
+          <div className="p-4 rounded bg-black/40 border flex flex-wrap items-center justify-between gap-3" style={{ borderColor: `${palette.primary}44` }}>
+            <div>
+              <h3 className="text-sm font-bold uppercase" style={{ color: palette.primary }}>
+                System Data Backup & Export
+              </h3>
+              <p className="text-xs opacity-75">Download or restore your complete Hunter profile & custom settings.</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={exportSystemJson} style={getButtonStyle("primary")} className="px-4 py-2 text-xs font-bold uppercase">
+                Export JSON Backup
+              </button>
+              <label style={getButtonStyle("secondary")} className="px-4 py-2 text-xs font-bold uppercase cursor-pointer">
+                Import JSON
+                <input type="file" accept=".json" className="hidden" onChange={importSystemJson} />
+              </label>
+            </div>
+          </div>
+        </div>
+      );
+
+      return (
+        <div
+          className={`min-h-screen transition-colors duration-300 ${state.ui.scanlines ? "scanlines" : ""}`}
+          style={{
+            backgroundColor: palette.bg,
+            color: palette.text,
+            fontFamily: state.ui.fontFamily
+          }}
+        >
+          {/* TOP SYSTEM HUD HEADER */}
+          <header className="border-b px-4 py-3 sticky top-0 z-30 backdrop-blur-md" style={{ backgroundColor: `${palette.bg}dd`, borderColor: `${palette.primary}44` }}>
+            <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+              {/* Brand Emblem + System Title */}
+              <div className="flex items-center gap-3">
+                <svg className="w-9 h-9" viewBox="0 0 100 100" fill="none">
+                  <polygon points="50,5 92,27 92,73 50,95 8,73 8,27" stroke={palette.primary} strokeWidth="5" />
+                  <path d="M65,32 L38,32 L32,44 L68,56 L62,68 L35,68" stroke={palette.primary} strokeWidth="6" strokeLinecap="square" />
+                </svg>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold tracking-widest uppercase px-1.5 py-0.5 rounded" style={{ background: `${palette.primary}22`, color: palette.primary }}>
+                      SOLO LEVELING
+                    </span>
+                    <span className="text-xs opacity-70">v3.5 STANDALONE</span>
+                  </div>
+                  <h1 className="text-xl font-black tracking-widest" style={{ textShadow: `0 0 ${state.ui.textGlow}px ${palette.primary}` }}>
+                    {state.ui.systemTitle} // PLAYER HUD
+                  </h1>
+                </div>
+              </div>
+
+              {/* Right Controls: All-Windows Toggle, Quick Customizer, Google Vault */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setState((prev) => ({ ...prev, ui: { ...prev.ui, allWindowsView: !prev.ui.allWindowsView } }))}
+                  style={getButtonStyle("secondary")}
+                  className="px-3 py-1.5 text-xs font-bold uppercase"
+                >
+                  {state.ui.allWindowsView ? "Single Window View" : "All-Windows HUD"}
+                </button>
+                <button
+                  onClick={() => setShowQuickDrawer(!showQuickDrawer)}
+                  style={getButtonStyle("secondary")}
+                  className="px-3 py-1.5 text-xs font-bold uppercase"
+                >
+                  Quick Style
+                </button>
+                <button
+                  onClick={() => setShowGoogleModal(true)}
+                  style={getButtonStyle("primary")}
+                  className="px-3 py-1.5 text-xs font-bold uppercase"
+                >
+                  {state.googleVault.bound ? `Google: ${state.googleVault.email}` : "Bind Google Account"}
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* NAVIGATION TABS & DIRECTIVE BAR */}
+          <div className="max-w-7xl mx-auto px-4 pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: "status", label: "STATUS WINDOW" },
+                  { id: "quests", label: "DAILY QUESTS & RAIDS" },
+                  { id: "inventory", label: "INVENTORY & STORE" },
+                  { id: "shadows", label: "SHADOW ARMY (ARISE)" },
+                  { id: "architect", label: "SYSTEM ARCHITECT" }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      playSystemSound("click", state.ui.soundEnabled);
+                    }}
+                    style={getButtonStyle(activeTab === tab.id ? "primary" : "secondary")}
+                    className="px-4 py-2 text-xs font-black tracking-wider uppercase"
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Command Console Input */}
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  placeholder='Command ("ARISE", "RECOVER", "LEVEL UP")'
+                  value={commandInput}
+                  onChange={(e) => setCommandInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && executeCommand()}
+                  className="px-3 py-1.5 rounded bg-slate-950 border text-xs w-60 outline-none"
+                  style={{ borderColor: `${palette.primary}66`, color: palette.text }}
+                />
+                <button onClick={() => executeCommand()} style={getButtonStyle("primary")} className="px-3 py-1.5 text-xs font-bold uppercase">
+                  EXEC
+                </button>
+              </div>
+            </div>
+
+            {/* NOTIFICATION TOAST */}
+            {toast && (
+              <div
+                className="mb-4 p-3 rounded border flex items-center justify-between animate-pulse-glow"
+                style={{
+                  background: `${palette.primary}22`,
+                  borderColor: palette.primary,
+                  boxShadow: `0 0 15px ${palette.primary}44`
+                }}
+              >
+                <span className="text-xs font-bold tracking-wider uppercase">[SYSTEM NOTIFICATION]: {toast.msg}</span>
+                <button onClick={() => setToast(null)} className="text-xs font-bold opacity-75">✕</button>
+              </div>
+            )}
+
+            {/* MAIN CONTENT AREA */}
+            <main className="pb-16">
+              {state.ui.allWindowsView ? (
+                <div className="space-y-8">
+                  {renderStatusWindow()}
+                  {renderQuestsWindow()}
+                  {renderInventoryWindow()}
+                  {renderShadowsWindow()}
+                  {renderArchitectWindow()}
+                </div>
+              ) : (
+                <>
+                  {activeTab === "status" && renderStatusWindow()}
+                  {activeTab === "quests" && renderQuestsWindow()}
+                  {activeTab === "inventory" && renderInventoryWindow()}
+                  {activeTab === "shadows" && renderShadowsWindow()}
+                  {activeTab === "architect" && renderArchitectWindow()}
+                </>
+              )}
+            </main>
+          </div>
+
+          {/* QUICK CUSTOMIZER FLOATING DRAWER */}
+          {showQuickDrawer && (
+            <div className="fixed right-4 top-20 z-40 w-80 p-4 rounded border space-y-3" style={{ ...getWindowStyle(), backgroundColor: "#040d1aee" }}>
+              <div className="flex justify-between items-center border-b pb-2" style={{ borderColor: `${palette.primary}44` }}>
+                <span className="text-xs font-black uppercase" style={{ color: palette.primary }}>QUICK UI CUSTOMIZER</span>
+                <button onClick={() => setShowQuickDrawer(false)} className="text-xs font-bold">✕</button>
+              </div>
+              <div className="space-y-2 text-xs">
+                <label className="block font-bold">Color Theme</label>
+                <select
+                  value={state.ui.preset}
+                  onChange={(e) => setState((prev) => ({ ...prev, ui: { ...prev.ui, preset: e.target.value, useCustomColors: false } }))}
+                  className="w-full p-1.5 rounded bg-slate-950 border"
+                  style={{ borderColor: `${palette.primary}55` }}
+                >
+                  {Object.entries(COLOR_PRESETS).map(([k, v]) => (
+                    <option key={k} value={k}>{v.name}</option>
+                  ))}
+                </select>
+                <label className="block font-bold mt-2">Font Family</label>
+                <select
+                  value={state.ui.fontFamily}
+                  onChange={(e) => setState((prev) => ({ ...prev, ui: { ...prev.ui, fontFamily: e.target.value } }))}
+                  className="w-full p-1.5 rounded bg-slate-950 border"
+                  style={{ borderColor: `${palette.primary}55` }}
+                >
+                  {FONT_OPTIONS.map((f) => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </select>
+                <label className="block font-bold mt-2">Button Shape</label>
+                <select
+                  value={state.ui.btnShape}
+                  onChange={(e) => setState((prev) => ({ ...prev, ui: { ...prev.ui, btnShape: e.target.value } }))}
+                  className="w-full p-1.5 rounded bg-slate-950 border"
+                  style={{ borderColor: `${palette.primary}55` }}
+                >
+                  <option value="chamfer">Tactical Chamfer</option>
+                  <option value="rounded">Modern Rounded</option>
+                  <option value="sharp">Brutalist Sharp</option>
+                  <option value="capsule">Sovereign Capsule</option>
+                  <option value="hex">Hexagon Core</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* EDIT HUNTER ID & PHOTO MODAL */}
+          {showIdModal && (
+            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+              <div style={getWindowStyle()} className="max-w-md w-full p-6 space-y-4">
+                <div className="flex justify-between items-center border-b pb-2" style={{ borderColor: `${palette.primary}44` }}>
+                  <h3 className="text-lg font-black uppercase" style={{ color: palette.primary }}>EDIT HUNTER ID & PHOTO</h3>
+                  <button onClick={() => setShowIdModal(false)}>✕</button>
+                </div>
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block mb-1 font-bold">Hunter Name</label>
+                    <input
+                      type="text"
+                      value={state.hunter.name}
+                      onChange={(e) => setState((prev) => ({ ...prev, hunter: { ...prev.hunter, name: e.target.value } }))}
+                      className="w-full p-2 rounded bg-slate-950 border"
+                      style={{ borderColor: `${palette.primary}55` }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-bold">Job / Class</label>
+                    <input
+                      type="text"
+                      value={state.hunter.job}
+                      onChange={(e) => setState((prev) => ({ ...prev, hunter: { ...prev.hunter, job: e.target.value } }))}
+                      className="w-full p-2 rounded bg-slate-950 border"
+                      style={{ borderColor: `${palette.primary}55` }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-bold">Title</label>
+                    <input
+                      type="text"
+                      value={state.hunter.title}
+                      onChange={(e) => setState((prev) => ({ ...prev, hunter: { ...prev.hunter, title: e.target.value } }))}
+                      className="w-full p-2 rounded bg-slate-950 border"
+                      style={{ borderColor: `${palette.primary}55` }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-bold">Upload ID Photo from Device</label>
+                    <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e, "hunter")} className="w-full text-xs" />
+                  </div>
+                </div>
+                <button onClick={() => setShowIdModal(false)} style={getButtonStyle("primary")} className="w-full py-2 text-xs font-bold uppercase">
+                  Save & Close
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* GOOGLE ACCOUNT PRIVATE VAULT MODAL */}
+          {showGoogleModal && (
+            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+              <div style={getWindowStyle()} className="max-w-md w-full p-6 space-y-4">
+                <div className="flex justify-between items-center border-b pb-2" style={{ borderColor: `${palette.primary}44` }}>
+                  <h3 className="text-lg font-black uppercase" style={{ color: palette.primary }}>GOOGLE ACCOUNT PRIVATE VAULT</h3>
+                  <button onClick={() => setShowGoogleModal(false)}>✕</button>
+                </div>
+                <p className="text-xs opacity-80">
+                  Bind your Google Account email to isolate and auto-save your Hunter progress in a dedicated encrypted vault slot.
+                </p>
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block mb-1 font-bold">Google Email (@gmail.com)</label>
+                    <input
+                      type="email"
+                      placeholder="hunter@gmail.com"
+                      value={gEmail}
+                      onChange={(e) => setGEmail(e.target.value)}
+                      className="w-full p-2 rounded bg-slate-950 border"
+                      style={{ borderColor: `${palette.primary}55` }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-bold">Hunter Display Name</label>
+                    <input
+                      type="text"
+                      value={gName}
+                      onChange={(e) => setGName(e.target.value)}
+                      className="w-full p-2 rounded bg-slate-950 border"
+                      style={{ borderColor: `${palette.primary}55` }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-bold">Optional Private Vault PIN</label>
+                    <input
+                      type="password"
+                      placeholder="••••"
+                      value={gPin}
+                      onChange={(e) => setGPin(e.target.value)}
+                      className="w-full p-2 rounded bg-slate-950 border"
+                      style={{ borderColor: `${palette.primary}55` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={bindGoogleVault} style={getButtonStyle("primary")} className="flex-1 py-2 text-xs font-bold uppercase">
+                    Bind & Save Vault
+                  </button>
+                  <button onClick={restoreFromGoogleVault} style={getButtonStyle("secondary")} className="flex-1 py-2 text-xs font-bold uppercase">
+                    Restore Vault
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
